@@ -388,8 +388,8 @@ export function getNegotiationById(id: string): Negotiation | undefined {
   loadFromDisk();
   let found = globalStore.__agentMarketNegotiations?.find((n) => n.id === id);
   if (!found && globalStore.__agentMarketNegotiations && globalStore.__agentMarketNegotiations.length > 0) {
-    // Fallback lookup: find any active open negotiation or return the most recent negotiation
-    found = globalStore.__agentMarketNegotiations.find((n) => n.status === "open") || globalStore.__agentMarketNegotiations[0];
+    const sorted = [...globalStore.__agentMarketNegotiations].sort((a, b) => b.updatedAt - a.updatedAt);
+    found = sorted.find((n) => n.status === "open") || sorted[0];
   }
   return found;
 }
@@ -397,12 +397,16 @@ export function getNegotiationById(id: string): Negotiation | undefined {
 export function getNegotiationForListing(listingId: string, buyerId?: string): Negotiation | undefined {
   loadFromDisk();
   const list = globalStore.__agentMarketNegotiations || [];
+  const forListing = list.filter((n) => n.listingId === listingId);
+  if (forListing.length === 0) return undefined;
+
   if (buyerId && buyerId !== "any" && !buyerId.startsWith("seller") && !buyerId.startsWith("user-seller")) {
-    const matched = list.find((n) => n.listingId === listingId && n.buyerId === buyerId);
+    const matched = forListing.find((n) => n.buyerId === buyerId);
     if (matched) return matched;
   }
-  // Default to returning the latest negotiation for this listing so sellers & buyers see the shared thread
-  return list.find((n) => n.listingId === listingId);
+  // Return the most recently updated negotiation for this listing so sellers & buyers see the shared thread
+  forListing.sort((a, b) => b.updatedAt - a.updatedAt);
+  return forListing[0];
 }
 
 export function createNegotiation(params: {

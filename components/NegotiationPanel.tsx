@@ -59,7 +59,26 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
       if (res.ok) {
         const data = await res.json();
         if (data.negotiation) {
-          setNegotiation(data.negotiation);
+          setNegotiation((prev) => {
+            if (!prev) return data.negotiation;
+            // Never downgrade an accepted/rejected negotiation to open via stale serverless poll
+            if (prev.status !== "open" && data.negotiation.status === "open") {
+              return prev;
+            }
+            // Never overwrite a local negotiation state with fewer offers (stale container state)
+            if (data.negotiation.offers.length < prev.offers.length) {
+              return prev;
+            }
+            // Ignore stale serverless poll responses with older timestamp
+            if (
+              data.negotiation.updatedAt < prev.updatedAt &&
+              data.negotiation.offers.length === prev.offers.length &&
+              data.negotiation.status === prev.status
+            ) {
+              return prev;
+            }
+            return data.negotiation;
+          });
         }
       }
     } catch (e) {
