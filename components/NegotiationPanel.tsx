@@ -48,6 +48,42 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
     }
   }, [negotiation?.id, setActiveNegotiationId]);
 
+  // BroadcastChannel listener for zero-latency cross-tab synchronization
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const channel = new BroadcastChannel("webmcp_negotiations_sync");
+    channel.onmessage = (event) => {
+      const updated = event.data as Negotiation;
+      if (updated && updated.listingId === listing.id) {
+        setNegotiation((prev) => {
+          if (!prev) return updated;
+          if (prev.status === "open" && updated.status !== "open") {
+            return updated;
+          }
+          if (updated.offers.length >= prev.offers.length || updated.updatedAt >= prev.updatedAt) {
+            return updated;
+          }
+          return prev;
+        });
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [listing.id]);
+
+  const broadcastUpdate = (neg: Negotiation) => {
+    if (typeof window === "undefined" || !neg) return;
+    try {
+      const channel = new BroadcastChannel("webmcp_negotiations_sync");
+      channel.postMessage(neg);
+      channel.close();
+      localStorage.setItem(`webmcp_neg_${neg.listingId}`, JSON.stringify(neg));
+    } catch (e) {}
+  };
+
   // Polling helper
   const fetchLatestNegotiation = useCallback(async () => {
     try {
@@ -131,6 +167,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
 
       if (res?.negotiation) {
         setNegotiation(res.negotiation);
+        broadcastUpdate(res.negotiation);
       } else {
         await fetchLatestNegotiation();
       }
@@ -169,6 +206,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
 
       if (res?.negotiation) {
         setNegotiation(res.negotiation);
+        broadcastUpdate(res.negotiation);
       } else {
         await fetchLatestNegotiation();
       }
@@ -199,6 +237,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
 
       if (res?.negotiation) {
         setNegotiation(res.negotiation);
+        broadcastUpdate(res.negotiation);
       } else {
         await fetchLatestNegotiation();
       }
@@ -236,7 +275,12 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         return;
       }
 
-      await fetchLatestNegotiation();
+      if (res?.negotiation) {
+        setNegotiation(res.negotiation);
+        broadcastUpdate(res.negotiation);
+      } else {
+        await fetchLatestNegotiation();
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to reject offer");
     } finally {
@@ -263,7 +307,12 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         return;
       }
 
-      await fetchLatestNegotiation();
+      if (res?.negotiation) {
+        setNegotiation(res.negotiation);
+        broadcastUpdate(res.negotiation);
+      } else {
+        await fetchLatestNegotiation();
+      }
       setShowPickupForm(false);
     } catch (err: any) {
       setError(err?.message || "Failed to schedule pickup");

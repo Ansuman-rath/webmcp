@@ -21,6 +21,16 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+const broadcastNegotiation = (neg: any) => {
+  if (typeof window === "undefined" || !neg) return;
+  try {
+    const channel = new BroadcastChannel("webmcp_negotiations_sync");
+    channel.postMessage(neg);
+    channel.close();
+    localStorage.setItem(`webmcp_neg_${neg.listingId}`, JSON.stringify(neg));
+  } catch (e) {}
+};
+
 export default function ListingDetailPage({
   params,
 }: {
@@ -92,6 +102,7 @@ export default function ListingDetailPage({
           }),
         });
         const data = await res.json();
+        if (data.negotiation) broadcastNegotiation(data.negotiation);
         fetchListingData();
         return data;
       },
@@ -108,6 +119,7 @@ export default function ListingDetailPage({
           }),
         });
         const data = await res.json();
+        if (data.negotiation) broadcastNegotiation(data.negotiation);
         fetchListingData();
         return data;
       },
@@ -122,6 +134,7 @@ export default function ListingDetailPage({
           }),
         });
         const data = await res.json();
+        if (data.negotiation) broadcastNegotiation(data.negotiation);
         fetchListingData();
         return data;
       },
@@ -137,6 +150,7 @@ export default function ListingDetailPage({
           }),
         });
         const data = await res.json();
+        if (data.negotiation) broadcastNegotiation(data.negotiation);
         fetchListingData();
         return data;
       },
@@ -153,6 +167,7 @@ export default function ListingDetailPage({
           }),
         });
         const data = await res.json();
+        if (data.negotiation) broadcastNegotiation(data.negotiation);
         fetchListingData();
         return data;
       },
