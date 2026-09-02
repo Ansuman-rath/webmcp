@@ -52,7 +52,10 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
   const fetchLatestNegotiation = useCallback(async () => {
     try {
       const buyerParam = currentRole === "buyer" ? "buyer-alice" : "any";
-      const res = await fetch(`/api/listings/${listing.id}?buyerId=${buyerParam}`);
+      const res = await fetch(`/api/listings/${listing.id}?buyerId=${buyerParam}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.negotiation) {
@@ -103,7 +106,11 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         return;
       }
 
-      await fetchLatestNegotiation();
+      if (res?.negotiation) {
+        setNegotiation(res.negotiation);
+      } else {
+        await fetchLatestNegotiation();
+      }
       setShowOfferForm(false);
       setOfferMessage("");
     } catch (err: any) {
@@ -137,7 +144,11 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         return;
       }
 
-      await fetchLatestNegotiation();
+      if (res?.negotiation) {
+        setNegotiation(res.negotiation);
+      } else {
+        await fetchLatestNegotiation();
+      }
       setShowOfferForm(false);
       setOfferMessage("");
     } catch (err: any) {
@@ -163,7 +174,11 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         return;
       }
 
-      await fetchLatestNegotiation();
+      if (res?.negotiation) {
+        setNegotiation(res.negotiation);
+      } else {
+        await fetchLatestNegotiation();
+      }
 
       // Trigger Confetti Celebration!
       confetti({

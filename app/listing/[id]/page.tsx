@@ -118,6 +118,7 @@ export default function ListingDetailPage({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "accept",
+            from: currentRole,
           }),
         });
         const data = await res.json();
@@ -131,6 +132,7 @@ export default function ListingDetailPage({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "reject",
+            from: currentRole,
             reason: args.reason,
           }),
         });
