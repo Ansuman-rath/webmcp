@@ -2,7 +2,7 @@
 
 > **Where your AI agent negotiates directly on the listing page — zero scraping, zero guessing.**
 
-[![WebMCP Standard Compliant](https://img.shields.io/badge/WebMCP-Compliant-00F0FF?style=flat-square&logo=googlechrome)](https://chrome.dev)
+[![WebMCP Standard Compliant](https://img.shields.io/badge/WebMCP-Compliant-00F0FF?style=flat-square&logo=googlechrome)](https://developer.chrome.com/docs/ai/webmcp)
 [![Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black?style=flat-square&logo=nextdotjs)](https://nextjs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
