@@ -44,7 +44,7 @@ export function WebMcpDevDrawer({ currentListingId }: { currentListingId?: strin
               WebMCP Protocol Inspector
             </span>
             <span className="px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-800 text-zinc-400">
-              {registeredTools.filter((t) => t.isActive).length} Active Tools
+              {registeredTools.length > 0 ? `${registeredTools.filter((t) => t.isActive).length} Active Tools` : "Initializing..."}
             </span>
           </div>
 
@@ -78,7 +78,7 @@ export function WebMcpDevDrawer({ currentListingId }: { currentListingId?: strin
                       : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
-                  Registered Tools ({registeredTools.length})
+                  Registered Tools ({registeredTools.length > 0 ? registeredTools.length : "..."})
                 </button>
                 <button
                   onClick={() => setActiveTab("logs")}

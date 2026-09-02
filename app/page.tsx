@@ -101,6 +101,27 @@ export default function HomePage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+        {/* Judge / Evaluator Callout Banner */}
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="shrink-0 w-8 h-8 rounded-full bg-amber-400/20 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-amber-300 mb-0.5">For Judges &amp; Evaluators</p>
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Click any listing → open a second window as <strong className="text-zinc-200">Seller</strong> → watch both agents negotiate through native WebMCP tools in real time.
+              The <strong className="text-zinc-200">WebMCP Protocol Inspector</strong> panel at the bottom shows every tool call, args, and result as they happen.
+              No scraping. No hidden API. The negotiation protocol lives in the webpage itself.
+            </p>
+          </div>
+          <Link
+            href="/listing/listing-1"
+            className="shrink-0 px-4 py-2 rounded-xl bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 text-amber-300 font-bold text-xs transition-all whitespace-nowrap"
+          >
+            Open Live Demo →
+          </Link>
+        </div>
+
         {/* Hero Banner */}
         <section className="relative rounded-3xl p-8 sm:p-12 overflow-hidden bg-gradient-to-br from-zinc-900 via-indigo-950/40 to-zinc-950 border border-zinc-800 shadow-2xl">
           <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -203,7 +224,7 @@ export default function HomePage() {
             <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
               <span>Active Marketplace Listings</span>
               <span className="text-xs font-mono text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
-                {listings.length} Available
+                {loading ? "Loading..." : `${listings.length} Available`}
               </span>
             </h2>
             <span className="text-xs text-zinc-400 flex items-center gap-1">

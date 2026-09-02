@@ -315,6 +315,7 @@ function loadFromDisk() {
     if (fs.existsSync(DB_PATH)) {
       const raw = fs.readFileSync(DB_PATH, "utf-8");
       const parsed = JSON.parse(raw);
+      // Only load from disk if data is richer than seed (avoids wiping seed on cold start)
       if (parsed.listings && Array.isArray(parsed.listings) && parsed.listings.length > 0) {
         globalStore.__agentMarketListings = parsed.listings;
       }
@@ -324,6 +325,13 @@ function loadFromDisk() {
     }
   } catch {
     // Ignore read errors in serverless env
+  }
+  // Guarantee seed data is ALWAYS present regardless of disk/memory state
+  if (!globalStore.__agentMarketListings || globalStore.__agentMarketListings.length === 0) {
+    globalStore.__agentMarketListings = [...INITIAL_LISTINGS];
+  }
+  if (!globalStore.__agentMarketNegotiations || globalStore.__agentMarketNegotiations.length === 0) {
+    globalStore.__agentMarketNegotiations = [...INITIAL_NEGOTIATIONS];
   }
 }
 
