@@ -227,8 +227,8 @@ navigator.modelContext.registerTool({
 
 ### 1. Clone & Install Dependencies
 ```bash
-git clone https://github.com/your-username/webmcp-agentmarket.git
-cd webmcp-agentmarket
+git clone https://github.com/Ansuman-rath/webmcp.git
+cd webmcp
 npm install
 ```
 
