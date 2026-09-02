@@ -400,12 +400,13 @@ export function getNegotiationForListing(listingId: string, buyerId?: string): N
   const forListing = list.filter((n) => n.listingId === listingId);
   if (forListing.length === 0) return undefined;
 
+  // Always sort by updatedAt descending FIRST so both seller and buyer receive the latest active state
+  forListing.sort((a, b) => b.updatedAt - a.updatedAt);
+
   if (buyerId && buyerId !== "any" && !buyerId.startsWith("seller") && !buyerId.startsWith("user-seller")) {
     const matched = forListing.find((n) => n.buyerId === buyerId);
     if (matched) return matched;
   }
-  // Return the most recently updated negotiation for this listing so sellers & buyers see the shared thread
-  forListing.sort((a, b) => b.updatedAt - a.updatedAt);
   return forListing[0];
 }
 

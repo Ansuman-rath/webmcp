@@ -61,6 +61,10 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         if (data.negotiation) {
           setNegotiation((prev) => {
             if (!prev) return data.negotiation;
+            // Always accept status transition from open to accepted or rejected across sessions
+            if (prev.status === "open" && data.negotiation.status !== "open") {
+              return data.negotiation;
+            }
             // Never downgrade an accepted/rejected negotiation to open via stale serverless poll
             if (prev.status !== "open" && data.negotiation.status === "open") {
               return prev;
