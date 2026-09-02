@@ -78,9 +78,6 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
   const isNegAccepted = negotiation?.status === "accepted";
   const isNegRejected = negotiation?.status === "rejected";
 
-  const isYourTurn =
-    isNegOpen && lastOffer !== undefined && lastOffer.from !== currentRole;
-
   // Handle Make Initial Offer
   const handleMakeInitialOffer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,15 +90,20 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         throw new Error("Please enter a valid offer amount.");
       }
 
-      await invokeToolSimulated("make_offer", {
+      const res = await invokeToolSimulated("make_offer", {
         listingId: listing.id,
         amount: amountNum,
         message: offerMessage || `Initial offer from ${currentRole} agent`,
       });
 
+      if (res?.isError || res?.error) {
+        setError(res?.error || "Failed to submit initial offer.");
+        return;
+      }
+
       // Fetch newly created negotiation
-      const res = await fetch(`/api/listings/${listing.id}?buyerId=buyer-alice`);
-      const data = await res.json();
+      const listRes = await fetch(`/api/listings/${listing.id}?buyerId=buyer-alice`);
+      const data = await listRes.json();
       if (data.negotiation) {
         setNegotiation(data.negotiation);
       }
@@ -127,11 +129,16 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         throw new Error("Please enter a valid counter amount.");
       }
 
-      await invokeToolSimulated("counter_offer", {
+      const res = await invokeToolSimulated("counter_offer", {
         negotiationId: negotiation.id,
         amount: amountNum,
         message: offerMessage || `Counter offer submitted by ${currentRole}`,
       });
+
+      if (res?.isError || res?.error) {
+        setError(res?.error || "Failed to submit counter offer.");
+        return;
+      }
 
       await fetchLatestNegotiation();
       setShowOfferForm(false);
@@ -150,9 +157,14 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
     setLoading(true);
 
     try {
-      await invokeToolSimulated("accept_offer", {
+      const res = await invokeToolSimulated("accept_offer", {
         negotiationId: negotiation.id,
       });
+
+      if (res?.isError || res?.error) {
+        setError(res?.error || "Failed to accept offer");
+        return;
+      }
 
       await fetchLatestNegotiation();
 
@@ -179,10 +191,15 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
     setLoading(true);
 
     try {
-      await invokeToolSimulated("reject_offer", {
+      const res = await invokeToolSimulated("reject_offer", {
         negotiationId: negotiation.id,
         reason: reason || "Price too far apart.",
       });
+
+      if (res?.isError || res?.error) {
+        setError(res?.error || "Failed to reject offer");
+        return;
+      }
 
       await fetchLatestNegotiation();
     } catch (err: any) {
@@ -200,11 +217,16 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
     setLoading(true);
 
     try {
-      await invokeToolSimulated("propose_pickup", {
+      const res = await invokeToolSimulated("propose_pickup", {
         negotiationId: negotiation.id,
         location: pickupLocation,
         time: pickupTime,
       });
+
+      if (res?.isError || res?.error) {
+        setError(res?.error || "Failed to schedule pickup");
+        return;
+      }
 
       await fetchLatestNegotiation();
       setShowPickupForm(false);
@@ -250,7 +272,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         {/* Error Notice */}
         {error && (
           <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
         )}
@@ -431,7 +453,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
             Current Active View: <strong className="text-zinc-200 capitalize">{currentRole}</strong>
           </span>
           <span className="text-[11px] text-indigo-400 font-medium">
-            {isYourTurn ? "⚡ Your turn to respond" : isNegOpen ? "⏳ Waiting for response" : "Status: " + (negotiation?.status || "Ready")}
+            {isNegOpen ? "⚡ Open for responses & WebMCP protocol actions" : "Status: " + (negotiation?.status || "Ready")}
           </span>
         </div>
 
@@ -574,13 +596,9 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
 
                 <button
                   onClick={handleAccept}
-                  disabled={loading || !isYourTurn}
-                  className={`py-2.5 rounded-xl text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all shadow-md ${
-                    isYourTurn
-                      ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20"
-                      : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                  }`}
-                  title={!isYourTurn ? "Gated by turn: You can only accept offers made by the opposing party" : "Accept latest offer"}
+                  disabled={loading}
+                  className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-600/20"
+                  title="Accept latest offer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Accept Offer</span>
@@ -588,12 +606,8 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
 
                 <button
                   onClick={handleReject}
-                  disabled={loading || !isYourTurn}
-                  className={`col-span-2 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
-                    isYourTurn
-                      ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                      : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed"
-                  }`}
+                  disabled={loading}
+                  className="col-span-2 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   <span>Reject & Close (reject_offer)</span>

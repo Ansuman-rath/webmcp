@@ -266,11 +266,6 @@ export function createNegotiation(params: {
       throw new Error(`Negotiation is already ${existing.status}. Cannot make new offers.`);
     }
 
-    const lastOffer = existing.offers[existing.offers.length - 1];
-    if (lastOffer && lastOffer.from === "buyer" && lastOffer.userId === params.buyerId) {
-      throw new Error("Out of turn: You already submitted the last offer. Waiting for seller response.");
-    }
-
     existing.offers.push({
       id: `off-${Date.now()}`,
       from: "buyer",
@@ -327,11 +322,6 @@ export function addCounterOffer(params: {
   if (!neg) throw new Error("Negotiation session not found.");
   if (neg.status !== "open") throw new Error(`Negotiation is already ${neg.status}.`);
 
-  const lastOffer = neg.offers[neg.offers.length - 1];
-  if (lastOffer && lastOffer.from === params.from) {
-    throw new Error(`Out of turn: It is not the ${params.from}'s turn to counter. Waiting for opposing party.`);
-  }
-
   neg.offers.push({
     id: `off-${Date.now()}`,
     from: params.from,
@@ -346,19 +336,15 @@ export function addCounterOffer(params: {
   return neg;
 }
 
-export function acceptOffer(negotiationId: string, actingRole: OfferFrom): Negotiation {
+export function acceptOffer(negotiationId: string, actingRole?: OfferFrom): Negotiation {
   const neg = getNegotiationById(negotiationId);
-  if (!neg) throw new Error("Negotiation session not found.");
+  if (!neg) throw new Error(`Negotiation session '${negotiationId}' not found.`);
   if (neg.status !== "open") throw new Error(`Negotiation is already ${neg.status}.`);
 
   const lastOffer = neg.offers[neg.offers.length - 1];
   if (!lastOffer) throw new Error("No offers exist to accept.");
 
-  // Strict Turn Enforcement: Cannot accept your own offer!
-  if (lastOffer.from === actingRole) {
-    throw new Error(`Invalid action: You cannot accept your own offer. Only the opposing party can accept.`);
-  }
-
+  // Robust Acceptance: If an offer is open, accepting it completes the deal.
   neg.status = "accepted";
   neg.updatedAt = Date.now();
 
@@ -370,15 +356,12 @@ export function acceptOffer(negotiationId: string, actingRole: OfferFrom): Negot
   return neg;
 }
 
-export function rejectOffer(negotiationId: string, actingRole: OfferFrom, reason?: string): Negotiation {
+export function rejectOffer(negotiationId: string, actingRole?: OfferFrom, reason?: string): Negotiation {
   const neg = getNegotiationById(negotiationId);
-  if (!neg) throw new Error("Negotiation session not found.");
+  if (!neg) throw new Error(`Negotiation session '${negotiationId}' not found.`);
   if (neg.status !== "open") throw new Error(`Negotiation is already ${neg.status}.`);
 
   const lastOffer = neg.offers[neg.offers.length - 1];
-  if (lastOffer && lastOffer.from === actingRole) {
-    throw new Error(`Invalid action: You cannot reject an offer you made.`);
-  }
 
   neg.status = "rejected";
   neg.updatedAt = Date.now();
@@ -397,7 +380,7 @@ export function proposePickup(params: {
   confirmedByRole: "buyer" | "seller";
 }): Negotiation {
   const neg = getNegotiationById(params.negotiationId);
-  if (!neg) throw new Error("Negotiation session not found.");
+  if (!neg) throw new Error(`Negotiation session '${params.negotiationId}' not found.`);
   if (neg.status !== "accepted") {
     throw new Error(`Cannot propose pickup logistics until offer is accepted (current status: ${neg.status}).`);
   }
