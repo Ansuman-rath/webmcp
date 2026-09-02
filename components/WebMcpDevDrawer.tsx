@@ -6,14 +6,11 @@ import {
   Terminal,
   ChevronUp,
   ChevronDown,
-  Play,
   Trash2,
   CheckCircle,
   Code,
-  Zap,
   Bot,
   ExternalLink,
-  Info,
 } from "lucide-react";
 
 export function WebMcpDevDrawer({ currentListingId }: { currentListingId?: string }) {
@@ -29,78 +26,8 @@ export function WebMcpDevDrawer({ currentListingId }: { currentListingId?: strin
   } = useWebMcp();
 
   const [isOpen, setIsOpen] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<"tools" | "logs" | "walkthrough">("tools");
-  const [isSimulating, setIsSimulating] = useState<boolean>(false);
-  const [simStep, setSimStep] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"tools" | "logs">("tools");
 
-  // Replay Recorded Protocol Walkthrough (Explicitly Labeled)
-  const runRecordedProtocolWalkthrough = async () => {
-    if (isSimulating) return;
-    setIsSimulating(true);
-    const targetListing = currentListingId || "listing-1";
-
-    try {
-      // Step 1: Buyer (Alice) makes initial offer
-      setCurrentRole("buyer");
-      setSimStep("🤖 [Step 1/5] Alice Agent calling make_offer($1,850)...");
-      const step1 = await invokeToolSimulated("make_offer", {
-        listingId: targetListing,
-        amount: 1850,
-        message: "Hi! My client is ready to buy today for $1,850 in cash.",
-      });
-
-      const negId = step1?.negotiation?.id || activeNegotiationId || "neg-demo-1";
-
-      await new Promise((r) => setTimeout(r, 1800));
-
-      // Step 2: Seller (Bob) counters offer
-      setCurrentRole("seller");
-      setSimStep("🤖 [Step 2/5] Bob Agent calling counter_offer($1,980)...");
-      await invokeToolSimulated("counter_offer", {
-        negotiationId: negId,
-        amount: 1980,
-        message: "Thanks! $1,850 is a bit low. Countering at $1,980 with Kryptonite lock included.",
-      });
-
-      await new Promise((r) => setTimeout(r, 1800));
-
-      // Step 3: Buyer (Alice) counters back
-      setCurrentRole("buyer");
-      setSimStep("🤖 [Step 3/5] Alice Agent calling counter_offer($1,920)...");
-      await invokeToolSimulated("counter_offer", {
-        negotiationId: negId,
-        amount: 1920,
-        message: "Can we split the difference at $1,920? Instant confirmation.",
-      });
-
-      await new Promise((r) => setTimeout(r, 1800));
-
-      // Step 4: Seller (Bob) accepts offer
-      setCurrentRole("seller");
-      setSimStep("🤖 [Step 4/5] Bob Agent calling accept_offer()...");
-      await invokeToolSimulated("accept_offer", {
-        negotiationId: negId,
-      });
-
-      await new Promise((r) => setTimeout(r, 1800));
-
-      // Step 5: Buyer (Alice) proposes pickup
-      setCurrentRole("buyer");
-      setSimStep("🤖 [Step 5/5] Alice Agent calling propose_pickup()...");
-      await invokeToolSimulated("propose_pickup", {
-        negotiationId: negId,
-        location: "Blue Bottle Coffee (4th St, SF)",
-        time: "Tomorrow at 2:30 PM",
-      });
-
-      setSimStep("🎉 Walkthrough Complete! Offer Agreed ($1,920) & Pickup Scheduled.");
-    } catch (e: any) {
-      console.error("Walkthrough error:", e);
-      setSimStep(`Error in walkthrough: ${e?.message}`);
-    } finally {
-      setIsSimulating(false);
-    }
-  };
 
   return (
     <div className="fixed bottom-0 right-0 left-0 md:left-auto md:right-6 md:bottom-4 z-50 md:max-w-xl w-full">
@@ -165,17 +92,6 @@ export function WebMcpDevDrawer({ currentListingId }: { currentListingId?: strin
                   {logs.length > 0 && (
                     <span className="ml-1.5 w-2 h-2 inline-block rounded-full bg-purple-400" />
                   )}
-                </button>
-                <button
-                  onClick={() => setActiveTab("walkthrough")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
-                    activeTab === "walkthrough"
-                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                      : "text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
-                  Walkthrough Replay
                 </button>
               </div>
 
@@ -271,40 +187,6 @@ export function WebMcpDevDrawer({ currentListingId }: { currentListingId?: strin
               </div>
             )}
 
-            {/* TAB 3: WALKTHROUGH REPLAY */}
-            {activeTab === "walkthrough" && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-800/40 text-xs">
-                  <div className="flex items-center gap-2 text-indigo-300 font-semibold mb-1">
-                    <Info className="w-4 h-4 text-indigo-400" />
-                    Scripted Protocol Walkthrough Replay
-                  </div>
-                  <p className="text-zinc-400 text-[11px] leading-relaxed">
-                    This walkthrough replays WebMCP tool calls step-by-step for video recordings and presentation evaluation. For autonomous agent-to-agent negotiation, open two windows using the <strong>New Buyer Tab</strong> and <strong>New Seller Tab</strong> options in the top header.
-                  </p>
-                </div>
-
-                {simStep && (
-                  <div className="p-3 rounded-xl bg-zinc-900 border border-amber-500/40 text-xs text-amber-300 font-mono flex items-center gap-2">
-                    <Zap className="w-4 h-4 shrink-0 animate-bounce text-amber-400" />
-                    <span>{simStep}</span>
-                  </div>
-                )}
-
-                <button
-                  onClick={runRecordedProtocolWalkthrough}
-                  disabled={isSimulating}
-                  className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg ${
-                    isSimulating
-                      ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-95 text-white shadow-indigo-600/30"
-                  }`}
-                >
-                  <Play className={`w-4 h-4 ${isSimulating ? "animate-spin" : ""}`} />
-                  <span>{isSimulating ? "Replaying Walkthrough..." : "Replay Scripted Protocol Walkthrough"}</span>
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

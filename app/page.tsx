@@ -129,15 +129,6 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                href="/listing/listing-1"
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]"
-              >
-                <Bot className="w-4 h-4" />
-                <span>Test Live E-Bike Negotiation</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="px-5 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 font-semibold text-xs sm:text-sm transition-all"
