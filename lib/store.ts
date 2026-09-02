@@ -99,7 +99,7 @@ const INITIAL_LISTINGS: Listing[] = [
     sellerId: "seller-sarah",
     sellerName: "Sarah Lin (Designer)",
     category: "Furniture",
-    imageUrl: "https://images.unsplash.com/photo-1580481072645-022f9a6d8310?q=80&w=1200&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=1200&auto=format&fit=crop",
     status: "available",
     createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
     location: "Palo Alto, CA",
