@@ -50,9 +50,9 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
 
   // Polling helper
   const fetchLatestNegotiation = useCallback(async () => {
-    if (!negotiation?.id) return;
     try {
-      const res = await fetch(`/api/negotiations/${negotiation.id}`);
+      const buyerParam = currentRole === "buyer" ? "buyer-alice" : "any";
+      const res = await fetch(`/api/listings/${listing.id}?buyerId=${buyerParam}`);
       if (res.ok) {
         const data = await res.json();
         if (data.negotiation) {
@@ -62,21 +62,23 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
     } catch (e) {
       console.error("Polling error:", e);
     }
-  }, [negotiation?.id]);
+  }, [listing.id, currentRole]);
 
   // 1.5s Polling loop
   useEffect(() => {
-    if (!negotiation?.id || negotiation.status !== "open") return;
     const interval = setInterval(() => {
       fetchLatestNegotiation();
     }, 1500);
     return () => clearInterval(interval);
-  }, [negotiation?.id, negotiation?.status, fetchLatestNegotiation]);
+  }, [fetchLatestNegotiation]);
 
   const lastOffer = negotiation?.offers[negotiation.offers.length - 1];
   const isNegOpen = negotiation?.status === "open";
   const isNegAccepted = negotiation?.status === "accepted";
   const isNegRejected = negotiation?.status === "rejected";
+
+  // Turn enforcement calculation
+  const isYourTurn = isNegOpen && lastOffer !== undefined && lastOffer.from !== currentRole;
 
   // Handle Make Initial Offer
   const handleMakeInitialOffer = async (e: React.FormEvent) => {
@@ -101,12 +103,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         return;
       }
 
-      // Fetch newly created negotiation
-      const listRes = await fetch(`/api/listings/${listing.id}?buyerId=buyer-alice`);
-      const data = await listRes.json();
-      if (data.negotiation) {
-        setNegotiation(data.negotiation);
-      }
+      await fetchLatestNegotiation();
       setShowOfferForm(false);
       setOfferMessage("");
     } catch (err: any) {
@@ -162,7 +159,7 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
       });
 
       if (res?.isError || res?.error) {
-        setError(res?.error || "Failed to accept offer");
+        setError(res?.error || "Failed to accept offer: Out of turn.");
         return;
       }
 
@@ -450,10 +447,14 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
         {/* Role Helper Banner */}
         <div className="flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800">
           <span className="text-zinc-400">
-            Current Active View: <strong className="text-zinc-200 capitalize">{currentRole}</strong>
+            Active Role: <strong className="text-zinc-200 capitalize">{currentRole}</strong>
           </span>
-          <span className="text-[11px] text-indigo-400 font-medium">
-            {isNegOpen ? "⚡ Open for responses & WebMCP protocol actions" : "Status: " + (negotiation?.status || "Ready")}
+          <span className={`text-[11px] font-medium ${isYourTurn ? "text-emerald-400" : "text-amber-400"}`}>
+            {isYourTurn
+              ? "⚡ Your turn to accept or counter"
+              : isNegOpen
+              ? "⏳ Waiting for opposing party response"
+              : "Status: " + (negotiation?.status || "Ready")}
           </span>
         </div>
 
@@ -588,26 +589,40 @@ export function NegotiationPanel({ listing, initialNegotiation }: Props) {
               <>
                 <button
                   onClick={() => setShowOfferForm(true)}
-                  className="py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-cyan-600/20"
+                  disabled={loading || !isYourTurn}
+                  className={`py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-md ${
+                    isYourTurn
+                      ? "bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-600/20"
+                      : "bg-zinc-800 text-zinc-500 border border-zinc-700/50 cursor-not-allowed"
+                  }`}
+                  title={!isYourTurn ? "Out of turn: You cannot counter your own offer. Waiting for opposing party." : "Counter offer"}
                 >
                   <DollarSign className="w-3.5 h-3.5" />
-                  <span>Counter Offer</span>
+                  <span>{isYourTurn ? "Counter Offer" : "Waiting to Counter"}</span>
                 </button>
 
                 <button
                   onClick={handleAccept}
-                  disabled={loading}
-                  className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-600/20"
-                  title="Accept latest offer"
+                  disabled={loading || !isYourTurn}
+                  className={`py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-md ${
+                    isYourTurn
+                      ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20"
+                      : "bg-zinc-800 text-zinc-500 border border-zinc-700/50 cursor-not-allowed"
+                  }`}
+                  title={!isYourTurn ? "Out of turn: You cannot accept your own offer. Waiting for opposing party to accept." : "Accept latest offer"}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Accept Offer</span>
+                  <span>{isYourTurn ? "Accept Offer" : "Waiting for Accept"}</span>
                 </button>
 
                 <button
                   onClick={handleReject}
-                  disabled={loading}
-                  className="col-span-2 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
+                  disabled={loading || !isYourTurn}
+                  className={`col-span-2 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
+                    isYourTurn
+                      ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                      : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed"
+                  }`}
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   <span>Reject & Close (reject_offer)</span>
