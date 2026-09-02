@@ -1,6 +1,7 @@
 # ⚡ AgentMarket — WebMCP Challenge Submission
 
-> **Where your AI agent negotiates directly on the listing page — zero scraping, zero guessing.**
+> **The first marketplace where negotiation is a native web capability.**
+> Humans set goals. Agents execute the deal — through standardized WebMCP tools declared directly on the listing page.
 
 [![WebMCP Standard Compliant](https://img.shields.io/badge/WebMCP-Compliant-00F0FF?style=flat-square&logo=googlechrome)](https://developer.chrome.com/docs/ai/webmcp)
 [![Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black?style=flat-square&logo=nextdotjs)](https://nextjs.org)
@@ -10,9 +11,14 @@
 
 ## 🎯 The Pitch (Submission Text)
 
-Today, when an AI agent attempts to negotiate or make purchases on a peer-to-peer marketplace, it either **fails outright** (no public API exists) or relies on **fragile DOM scraping and blind button clicking**.
+There are a lot of "AI marketplaces." AgentMarket is not one of them.
 
-**AgentMarket** solves this by leveraging the new **Chrome WebMCP standard (`navigator.modelContext.registerTool`)**. The seller and buyer expose the *same* WebMCP protocol tools directly on the listing web page:
+**AgentMarket is a marketplace designed as an agent-native protocol.** The distinction matters.
+
+Today, when an AI agent attempts to negotiate on a peer-to-peer marketplace, it either **fails outright** (no public API exists) or relies on **fragile DOM scraping and blind button clicking** — because those websites were built for humans, not agents.
+
+**AgentMarket solves this at the protocol layer.** By leveraging the Chrome WebMCP standard (`navigator.modelContext.registerTool`), the marketplace exposes the *entire negotiation capability* as structured, discoverable tools directly on the webpage — not in a separate API. Both buyer and seller declare:
+
 * `make_offer(listingId, amount, message)`
 * `counter_offer(negotiationId, amount, message)`
 * `accept_offer(negotiationId)`
@@ -22,7 +28,9 @@ Today, when an AI agent attempts to negotiate or make purchases on a peer-to-pee
 * `search_listings(query, maxPrice, category)`
 * `get_negotiation_history(negotiationId)`
 
-Two independent AI agents can negotiate and transact through the open web **the exact same way they would transact through a structured API** — except there is no separate API integration required, just a standard webpage declaring its own protocol.
+Two independent AI agents can discover, negotiate, and complete a transaction through the open web **the exact same way they'd use a structured API** — except there's no separate integration, no scraping, no guessing. Just a standard webpage declaring its own protocol.
+
+The negotiation capability **lives in the webpage itself**, discoverable and executable by any WebMCP-compatible agent.
 
 ### Why it's a strong WebMCP fit:
 * **The "Impossible Before" Story:** Webpages were static HTML documents or SPA user interfaces intended solely for human eyes. WebMCP enables the *site itself* to declare its interactive business negotiation protocol to visiting AI agents in real time.

@@ -109,23 +109,29 @@ export default function HomePage() {
           <div className="relative z-10 max-w-3xl space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 text-xs font-semibold tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>WebMCP Challenge Submission Project</span>
+              <span>Agent-Native Protocol · WebMCP Challenge Submission</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Where Your Agent Negotiates Directly On The{" "}
+              The First Marketplace Where{" "}
               <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-                Listing Page
+                Negotiation Is a Native Web Capability
               </span>
             </h1>
 
             <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">
-              No brittle scraping, no hidden APIs. Both seller and buyer expose native WebMCP tools (
+              Humans set goals. Agents execute the deal.{" "}
+              AgentMarket isn&apos;t an AI that buys things — it&apos;s a marketplace where both sides expose standardized WebMCP tools (
               <code className="text-cyan-300 bg-zinc-900 px-1 py-0.5 rounded font-mono text-xs">make_offer</code>,{" "}
               <code className="text-cyan-300 bg-zinc-900 px-1 py-0.5 rounded font-mono text-xs">counter_offer</code>,{" "}
               <code className="text-cyan-300 bg-zinc-900 px-1 py-0.5 rounded font-mono text-xs">accept_offer</code>,{" "}
               <code className="text-cyan-300 bg-zinc-900 px-1 py-0.5 rounded font-mono text-xs">propose_pickup</code>
-              ) on the web page, turning standard marketplace listings into open WebMCP negotiation endpoints.
+              ) directly on the listing page — no scraping, no guessing, no hidden APIs.
+            </p>
+
+            <p className="text-zinc-500 text-xs sm:text-sm leading-relaxed border-l-2 border-cyan-500/40 pl-4">
+              Not <em className="text-zinc-400">&ldquo;an AI marketplace.&rdquo;</em> There are thousands of those.{" "}
+              This is a marketplace <strong className="text-zinc-200">designed as an agent-native protocol</strong> — where the negotiation capability lives in the webpage itself, discoverable and executable by any WebMCP-compatible agent.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -138,19 +144,19 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Real-Time Stats Bar */}
+          {/* Protocol Stats Bar */}
           <div className="mt-8 pt-6 border-t border-zinc-800/80 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Standard Protocol</span>
+              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Standard</span>
               <span className="text-zinc-200 font-bold text-sm">Chrome WebMCP API</span>
             </div>
             <div className="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Exposed Tools</span>
-              <span className="text-cyan-400 font-bold text-sm">8 WebMCP Functions</span>
+              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Native Tools</span>
+              <span className="text-cyan-400 font-bold text-sm">8 Protocol Functions</span>
             </div>
             <div className="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">State Model</span>
-              <span className="text-indigo-400 font-bold text-sm">1.5s Live Polling Sync</span>
+              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Sync Model</span>
+              <span className="text-indigo-400 font-bold text-sm">BroadcastChannel + Poll</span>
             </div>
             <div className="bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
               <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Role Gating</span>
