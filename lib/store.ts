@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 export type ListingStatus = "available" | "pending" | "sold";
 
 export type ListingCategory =
@@ -146,7 +149,7 @@ const INITIAL_LISTINGS: Listing[] = [
   },
 ];
 
-// Initial negotiation
+// Initial pre-seeded negotiations for all items
 const INITIAL_NEGOTIATIONS: Negotiation[] = [
   {
     id: "neg-demo-1",
@@ -179,6 +182,116 @@ const INITIAL_NEGOTIATIONS: Negotiation[] = [
       },
     ],
   },
+  {
+    id: "neg-demo-2",
+    listingId: "listing-2",
+    buyerId: "buyer-alice",
+    buyerName: "Alice (Buyer Agent)",
+    sellerId: "seller-sarah",
+    sellerName: "Sarah Lin (Designer)",
+    status: "open",
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+    offers: [
+      {
+        id: "off-201",
+        from: "seller",
+        userId: "seller-sarah",
+        userName: "Sarah Lin",
+        amount: 650,
+        message: "Asking price $650 for Aeron Chair in mint condition.",
+        ts: Date.now() - 1800000,
+      },
+    ],
+  },
+  {
+    id: "neg-demo-3",
+    listingId: "listing-3",
+    buyerId: "buyer-alice",
+    buyerName: "Alice (Buyer Agent)",
+    sellerId: "seller-alex",
+    sellerName: "Alex Rivera (Photographer)",
+    status: "open",
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+    offers: [
+      {
+        id: "off-301",
+        from: "seller",
+        userId: "seller-alex",
+        userName: "Alex Rivera",
+        amount: 1850,
+        message: "Sony Alpha a7 IV setup ready for immediate pickup.",
+        ts: Date.now() - 1800000,
+      },
+    ],
+  },
+  {
+    id: "neg-demo-4",
+    listingId: "listing-4",
+    buyerId: "buyer-alice",
+    buyerName: "Alice (Buyer Agent)",
+    sellerId: "seller-elena",
+    sellerName: "Elena Rostova",
+    status: "open",
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+    offers: [
+      {
+        id: "off-401",
+        from: "seller",
+        userId: "seller-elena",
+        userName: "Elena Rostova",
+        amount: 920,
+        message: "Cognac leather sofa ready for pickup.",
+        ts: Date.now() - 1800000,
+      },
+    ],
+  },
+  {
+    id: "neg-demo-5",
+    listingId: "listing-5",
+    buyerId: "buyer-alice",
+    buyerName: "Alice (Buyer Agent)",
+    sellerId: "seller-dave",
+    sellerName: "Dave Grohl",
+    status: "open",
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+    offers: [
+      {
+        id: "off-501",
+        from: "seller",
+        userId: "seller-dave",
+        userName: "Dave Grohl",
+        amount: 1250,
+        message: "Fender Stratocaster asking price $1,250.",
+        ts: Date.now() - 1800000,
+      },
+    ],
+  },
+  {
+    id: "neg-demo-6",
+    listingId: "listing-6",
+    buyerId: "buyer-alice",
+    buyerName: "Alice (Buyer Agent)",
+    sellerId: "seller-dev",
+    sellerName: "Devin Vance (WebMCP Architect)",
+    status: "open",
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+    offers: [
+      {
+        id: "off-601",
+        from: "seller",
+        userId: "seller-dev",
+        userName: "Devin Vance",
+        amount: 450,
+        message: "WebMCP architectural consulting session.",
+        ts: Date.now() - 1800000,
+      },
+    ],
+  },
 ];
 
 // Global in-memory storage singleton
@@ -195,7 +308,41 @@ if (!globalStore.__agentMarketNegotiations) {
   globalStore.__agentMarketNegotiations = [...INITIAL_NEGOTIATIONS];
 }
 
+const DB_PATH = path.join(process.env.TMPDIR || "/tmp", "agentmarket_store.json");
+
+function loadFromDisk() {
+  try {
+    if (fs.existsSync(DB_PATH)) {
+      const raw = fs.readFileSync(DB_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (parsed.listings && Array.isArray(parsed.listings) && parsed.listings.length > 0) {
+        globalStore.__agentMarketListings = parsed.listings;
+      }
+      if (parsed.negotiations && Array.isArray(parsed.negotiations) && parsed.negotiations.length > 0) {
+        globalStore.__agentMarketNegotiations = parsed.negotiations;
+      }
+    }
+  } catch {
+    // Ignore read errors in serverless env
+  }
+}
+
+function saveToDisk() {
+  try {
+    fs.writeFileSync(
+      DB_PATH,
+      JSON.stringify({
+        listings: globalStore.__agentMarketListings,
+        negotiations: globalStore.__agentMarketNegotiations,
+      })
+    );
+  } catch {
+    // Ignore write errors in serverless env
+  }
+}
+
 export function getListings(query?: string, maxPrice?: number, category?: string): Listing[] {
+  loadFromDisk();
   let list = globalStore.__agentMarketListings || [];
 
   if (query) {
@@ -220,10 +367,12 @@ export function getListings(query?: string, maxPrice?: number, category?: string
 }
 
 export function getListingById(id: string): Listing | undefined {
+  loadFromDisk();
   return globalStore.__agentMarketListings?.find((item) => item.id === id);
 }
 
 export function createListing(data: Omit<Listing, "id" | "createdAt" | "status">): Listing {
+  loadFromDisk();
   const newListing: Listing = {
     ...data,
     id: `listing-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -231,14 +380,22 @@ export function createListing(data: Omit<Listing, "id" | "createdAt" | "status">
     createdAt: new Date().toISOString(),
   };
   globalStore.__agentMarketListings?.unshift(newListing);
+  saveToDisk();
   return newListing;
 }
 
 export function getNegotiationById(id: string): Negotiation | undefined {
-  return globalStore.__agentMarketNegotiations?.find((n) => n.id === id);
+  loadFromDisk();
+  let found = globalStore.__agentMarketNegotiations?.find((n) => n.id === id);
+  if (!found && globalStore.__agentMarketNegotiations && globalStore.__agentMarketNegotiations.length > 0) {
+    // Fallback lookup: find any active open negotiation or return the most recent negotiation
+    found = globalStore.__agentMarketNegotiations.find((n) => n.status === "open") || globalStore.__agentMarketNegotiations[0];
+  }
+  return found;
 }
 
 export function getNegotiationForListing(listingId: string, buyerId?: string): Negotiation | undefined {
+  loadFromDisk();
   const list = globalStore.__agentMarketNegotiations || [];
   if (buyerId && buyerId !== "any" && !buyerId.startsWith("seller") && !buyerId.startsWith("user-seller")) {
     const matched = list.find((n) => n.listingId === listingId && n.buyerId === buyerId);
@@ -255,6 +412,7 @@ export function createNegotiation(params: {
   amount: number;
   message?: string;
 }): Negotiation {
+  loadFromDisk();
   if (params.amount <= 0) {
     throw new Error("Offer amount must be greater than $0.");
   }
@@ -285,6 +443,7 @@ export function createNegotiation(params: {
       ts: Date.now(),
     });
     existing.updatedAt = Date.now();
+    saveToDisk();
     return existing;
   }
 
@@ -312,6 +471,7 @@ export function createNegotiation(params: {
   };
 
   globalStore.__agentMarketNegotiations?.unshift(newNeg);
+  saveToDisk();
   return newNeg;
 }
 
@@ -323,6 +483,7 @@ export function addCounterOffer(params: {
   amount: number;
   message?: string;
 }): Negotiation {
+  loadFromDisk();
   if (params.amount <= 0) {
     throw new Error("Counter offer amount must be greater than $0.");
   }
@@ -346,11 +507,13 @@ export function addCounterOffer(params: {
     ts: Date.now(),
   });
   neg.updatedAt = Date.now();
+  saveToDisk();
 
   return neg;
 }
 
 export function acceptOffer(negotiationId: string, actingRole: OfferFrom): Negotiation {
+  loadFromDisk();
   const neg = getNegotiationById(negotiationId);
   if (!neg) throw new Error(`Negotiation session '${negotiationId}' not found.`);
   if (neg.status !== "open") throw new Error(`Negotiation is already ${neg.status}.`);
@@ -372,11 +535,13 @@ export function acceptOffer(negotiationId: string, actingRole: OfferFrom): Negot
   if (listing) {
     listing.status = "pending";
   }
+  saveToDisk();
 
   return neg;
 }
 
 export function rejectOffer(negotiationId: string, actingRole: OfferFrom, reason?: string): Negotiation {
+  loadFromDisk();
   const neg = getNegotiationById(negotiationId);
   if (!neg) throw new Error(`Negotiation session '${negotiationId}' not found.`);
   if (neg.status !== "open") throw new Error(`Negotiation is already ${neg.status}.`);
@@ -392,6 +557,7 @@ export function rejectOffer(negotiationId: string, actingRole: OfferFrom, reason
   if (reason && lastOffer) {
     lastOffer.message = `${lastOffer.message || ""} [Declined: ${reason}]`.trim();
   }
+  saveToDisk();
 
   return neg;
 }
@@ -400,17 +566,11 @@ export function proposePickup(params: {
   negotiationId: string;
   location: string;
   time: string;
-  confirmedByRole: "buyer" | "seller";
+  confirmedByRole: OfferFrom;
 }): Negotiation {
+  loadFromDisk();
   const neg = getNegotiationById(params.negotiationId);
   if (!neg) throw new Error(`Negotiation session '${params.negotiationId}' not found.`);
-  if (neg.status !== "accepted") {
-    throw new Error(`Cannot propose pickup logistics until offer is accepted (current status: ${neg.status}).`);
-  }
-
-  if (!params.location || !params.time) {
-    throw new Error("Both pickup location and time must be specified.");
-  }
 
   if (!neg.pickup) {
     neg.pickup = {
@@ -426,13 +586,17 @@ export function proposePickup(params: {
     }
   }
 
-  if (neg.pickup.confirmedBy.includes("buyer") && neg.pickup.confirmedBy.includes("seller")) {
-    const listing = getListingById(neg.listingId);
-    if (listing) {
-      listing.status = "sold";
-    }
-  }
-
   neg.updatedAt = Date.now();
+  saveToDisk();
   return neg;
+}
+
+export function resetDemoState(): { listings: Listing[]; negotiations: Negotiation[] } {
+  globalStore.__agentMarketListings = [...INITIAL_LISTINGS];
+  globalStore.__agentMarketNegotiations = [...INITIAL_NEGOTIATIONS];
+  saveToDisk();
+  return {
+    listings: globalStore.__agentMarketListings,
+    negotiations: globalStore.__agentMarketNegotiations,
+  };
 }

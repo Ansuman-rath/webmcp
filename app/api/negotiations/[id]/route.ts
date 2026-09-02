@@ -8,6 +8,9 @@ import {
   OfferFrom,
 } from "@/lib/store";
 
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,11 +21,17 @@ export async function GET(
   if (!negotiation) {
     return NextResponse.json(
       { isError: true, error: `Negotiation '${id}' not found` },
-      { status: 404 }
+      {
+        status: 404,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      }
     );
   }
 
-  return NextResponse.json({ negotiation });
+  return NextResponse.json(
+    { negotiation },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+  );
 }
 
 export async function PATCH(
@@ -89,14 +98,20 @@ export async function PATCH(
         );
     }
 
-    return NextResponse.json({
-      success: true,
-      action,
-      negotiation: updated,
-      message: `WebMCP tool action '${action}' applied successfully to negotiation ${id}`,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        action,
+        negotiation: updated,
+        message: `WebMCP tool action '${action}' applied successfully to negotiation ${id}`,
+      },
+      { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+    );
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Error executing WebMCP negotiation tool update";
-    return NextResponse.json({ isError: true, error: errorMessage }, { status: 400 });
+    return NextResponse.json(
+      { isError: true, error: errorMessage },
+      { status: 400, headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+    );
   }
 }
